@@ -182,7 +182,7 @@ impl OpenAIClient {
     }
 
     async fn post<T: serde::de::DeserializeOwned>(
-        & self,
+        &self,
         path: &str,
         body: &impl serde::ser::Serialize,
     ) -> Result<T, APIError> {

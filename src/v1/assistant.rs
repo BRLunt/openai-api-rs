@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 use super::types;
 use crate::impl_builder_methods;
+use crate::v1::types::Tool;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct AssistantRequest {
@@ -14,7 +15,7 @@ pub struct AssistantRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub instructions: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<HashMap<String, String>>>,
+    pub tools: Option<Vec<Tool>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_resources: Option<ToolResource>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -40,7 +41,7 @@ impl_builder_methods!(
     name: String,
     description: String,
     instructions: String,
-    tools: Vec<HashMap<String, String>>,
+    tools: Vec<Tool>,
     tool_resources: ToolResource,
     metadata: HashMap<String, String>
 );

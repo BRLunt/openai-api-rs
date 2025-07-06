@@ -156,3 +156,48 @@ Check out the [full API documentation](https://platform.openai.com/docs/api-refe
 
 ## License
 This project is licensed under [MIT license](https://github.com/dongri/openai-api-rs/blob/main/LICENSE).
+
+# Flows
+## Assistant flow with function calling
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Your Application
+    participant OpenAI API
+
+    User->>Your Application: Sends a message (e.g., "What's the weather in Tokyo?")
+
+    Your Application->>OpenAI API: 1. Create Assistant (if not already created)
+    Note right of OpenAI API: Request Body:<br/>{<br/>  "model": "gpt-4",<br/>  "tools": [{ "type": "function", ... }]<br/>}
+    OpenAI API-->>Your Application: Returns Assistant object<br/>{ "id": "asst_...", ... }
+
+    Your Application->>OpenAI API: 2. Create Thread
+    Note right of OpenAI API: Request Body: {}
+    OpenAI API-->>Your Application: Returns Thread object<br/>{ "id": "thread_...", ... }
+
+    Your Application->>OpenAI API: 3. Add Message to Thread
+    Note right of OpenAI API: Request Body:<br/>{<br/>  "role": "user",<br/>  "content": "What's the weather in Tokyo?"<br/>}
+    OpenAI API-->>Your Application: Returns Message object<br/>{ "id": "msg_...", ... }
+
+    Your Application->>OpenAI API: 4. Run Assistant on Thread
+    Note right of OpenAI API: Request Body:<br/>{ "assistant_id": "asst_..." }
+    OpenAI API-->>Your Application: Returns Run object<br/>{ "id": "run_...", "status": "queued", ... }
+
+    Your Application->>OpenAI API: 5. Poll Run Status
+    OpenAI API-->>Your Application: Returns Run object with "requires_action"<br/>{<br/>  "id": "run_...",<br/>  "status": "requires_action",<br/>  "required_action": {<br/>    "type": "submit_tool_outputs",<br/>    "submit_tool_outputs": {<br/>      "tool_calls": [{ "id": "call_...", "function": { "name": "getCurrentWeather", "arguments": "{\"location\": \"Tokyo\"}" } }]<br/>    }<br/>  }<br/>}
+
+    Your Application->>Your Application: 6. Execute the Function<br/>(e.g., call local getCurrentWeather("Tokyo"))<br/>Returns: { "temperature": "15", "unit": "celsius" }
+
+    Your Application->>OpenAI API: 7. Submit Tool Outputs to Run
+    Note right of OpenAI API: Request Body:<br/>{<br/>  "tool_outputs": [<br/>    {<br/>      "tool_call_id": "call_...",<br/>      "output": "{\"temperature\": \"15\", \"unit\": \"celsius\"}"<br/>    }<br/>  ]<br/>}
+    OpenAI API-->>Your Application: Returns Run object<br/>{ "id": "run_...", "status": "queued", ... }
+
+    Your Application->>OpenAI API: 8. Poll Run Status Again
+    OpenAI API-->>Your Application: Returns Run object with "completed"<br/>{ "id": "run_...", "status": "completed", ... }
+
+    Your Application->>OpenAI API: 9. Retrieve Messages from Thread
+    OpenAI API-->>Your Application: Returns list of Message objects<br/>[<br/>  { "role": "assistant", "content": [{ "type": "text", "text": { "value": "The weather in Tokyo is 15°C." } }] },<br/>  { "role": "user", "content": "What's the weather in Tokyo?" }<br/>]
+
+    Your Application->>User: 10. Displays the final response<br/>"The weather in Tokyo is 15°C."
+```

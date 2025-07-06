@@ -9,6 +9,24 @@ pub struct Function {
     pub parameters: FunctionParameters,
 }
 
+#[derive(Debug, Serialize, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolsType {
+    CodeInterpreter,
+    FileSearch,
+    Function,
+}
+
+#[derive(Debug, Serialize, Clone, Deserialize)]
+pub struct Tool {
+    pub r#type: ToolsType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function: Option<Function>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct FunctionParameters {
     #[serde(rename = "type")]
@@ -46,7 +64,7 @@ pub struct JSONSchemaDefine {
     pub items: Option<Box<JSONSchemaDefine>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 pub enum Tools {
@@ -55,30 +73,30 @@ pub enum Tools {
     Function(ToolsFunction),
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct ToolsFileSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file_search: Option<ToolsFileSearchObject>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct ToolsFunction {
     pub function: Function,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct ToolsFileSearchObject {
     pub max_num_results: Option<u8>,
     pub ranking_options: Option<FileSearchRankingOptions>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct FileSearchRankingOptions {
     pub ranker: Option<FileSearchRanker>,
     pub score_threshold: Option<f32>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub enum FileSearchRanker {
     #[serde(rename = "auto")]
     Auto,
