@@ -6,6 +6,8 @@ pub struct Function {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
     pub parameters: FunctionParameters,
 }
 
@@ -35,6 +37,9 @@ pub struct FunctionParameters {
     pub properties: Option<HashMap<String, Box<JSONSchemaDefine>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "additionalProperties")]
+    pub additional_properties: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]

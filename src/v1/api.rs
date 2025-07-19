@@ -33,7 +33,12 @@ use crate::v1::message::{
 use crate::v1::model::{ModelResponse, ModelsResponse};
 use crate::v1::moderation::{CreateModerationRequest, CreateModerationResponse};
 use crate::v1::run::{
-    CreateRunRequest, CreateThreadAndRunRequest, ListRun, ListRunStep, ModifyRunRequest, RunObject,
+    CreateRunRequest,
+    CreateThreadAndRunRequest,
+    ListRun,
+    ListRunStep,
+    ModifyRunRequest,
+    RunObject,
     RunStepObject,
 };
 use crate::v1::thread::{CreateThreadRequest, ModifyThreadRequest, ThreadObject};
@@ -64,7 +69,7 @@ pub struct OpenAIClientBuilder {
     headers: Option<HeaderMap>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct OpenAIClient {
     api_endpoint: String,
     api_key: Option<String>,
@@ -72,6 +77,22 @@ pub struct OpenAIClient {
     proxy: Option<String>,
     timeout: Option<u64>,
     headers: Option<HeaderMap>,
+}
+
+
+/// Represents a single tool output to be submitted to a run.
+#[derive(Serialize, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
+pub struct ToolOutput {
+    pub output: String,
+    pub tool_call_id: String
+}
+
+/// The top-level request object containing a list of tool outputs.
+/// This matches the JSON structure required by the OpenAI API.
+#[derive(Serialize, Debug)]
+pub struct SubmitToolOutputsRequest {
+    pub tool_outputs: Vec<ToolOutput>,
 }
 
 impl OpenAIClientBuilder {
@@ -188,11 +209,16 @@ impl OpenAIClient {
     ) -> Result<T, APIError> {
         let request = self.build_request(Method::POST, path).await;
         let request = request.json(body);
+        let body = serde_json::to_string(body)
+            .map_err(|e| APIError::CustomError {
+                message: format!("Failed to serialize body: {}", e),
+            })?;
+        println!("Request body: {}", body);
         let response = request.send().await?;
         self.handle_response(response).await
     }
 
-    async fn get<T: serde::de::DeserializeOwned>(&mut self, path: &str) -> Result<T, APIError> {
+    async fn get<T: serde::de::DeserializeOwned>(&self, path: &str) -> Result<T, APIError> {
         let request = self.build_request(Method::GET, path).await;
         let response = request.send().await?;
         self.handle_response(response).await
@@ -293,7 +319,7 @@ impl OpenAIClient {
         self.post("embeddings", &req).await
     }
 
-    pub async fn file_list(&mut self) -> Result<FileListResponse, APIError> {
+    pub async fn file_list(self) -> Result<FileListResponse, APIError> {
         self.get("files").await
     }
 
@@ -313,7 +339,7 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_file(
-        &mut self,
+        self,
         file_id: String,
     ) -> Result<FileRetrieveResponse, APIError> {
         self.get(&format!("files/{}", file_id)).await
@@ -321,6 +347,15 @@ impl OpenAIClient {
 
     pub async fn retrieve_file_content(&self, file_id: String) -> Result<Bytes, APIError> {
         self.get_raw(&format!("files/{}/content", file_id)).await
+    }
+
+    pub async fn tool_response(
+        &self, thread_id: &String,
+        run_id: &String,
+        submit_tool_outputs_request: &SubmitToolOutputsRequest,
+    ) -> Result<RunObject, APIError> {
+        let path = format!("threads/{}/runs/{}/submit_tool_outputs", thread_id, run_id);
+        self.post(path.as_str(), submit_tool_outputs_request).await
     }
 
     pub async fn chat_completion(
@@ -438,13 +473,13 @@ impl OpenAIClient {
     }
 
     pub async fn list_fine_tuning_jobs(
-        &mut self,
+        self,
     ) -> Result<FineTuningPagination<FineTuningJobObject>, APIError> {
         self.get("fine_tuning/jobs").await
     }
 
     pub async fn list_fine_tuning_job_events(
-        &mut self,
+        self,
         req: ListFineTuningJobEventsRequest,
     ) -> Result<FineTuningPagination<FineTuningJobEvent>, APIError> {
         self.get(&format!(
@@ -455,7 +490,7 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_fine_tuning_job(
-        &mut self,
+        self,
         req: RetrieveFineTuningJobRequest,
     ) -> Result<FineTuningJobObject, APIError> {
         self.get(&format!("fine_tuning/jobs/{}", req.fine_tuning_job_id))
@@ -488,7 +523,7 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_assistant(
-        &mut self,
+        self,
         assistant_id: String,
     ) -> Result<AssistantObject, APIError> {
         self.get(&format!("assistants/{}", assistant_id)).await
@@ -511,7 +546,7 @@ impl OpenAIClient {
     }
 
     pub async fn list_assistant(
-        &mut self,
+        self,
         limit: Option<i64>,
         order: Option<String>,
         after: Option<String>,
@@ -531,7 +566,7 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_assistant_file(
-        &mut self,
+        self,
         assistant_id: String,
         file_id: String,
     ) -> Result<AssistantFileObject, APIError> {
@@ -549,7 +584,7 @@ impl OpenAIClient {
     }
 
     pub async fn list_assistant_file(
-        &mut self,
+        self,
         assistant_id: String,
         limit: Option<i64>,
         order: Option<String>,
@@ -567,13 +602,13 @@ impl OpenAIClient {
     }
 
     pub async fn create_thread(
-        &mut self,
+        self,
         req: CreateThreadRequest,
     ) -> Result<ThreadObject, APIError> {
         self.post("threads", &req).await
     }
 
-    pub async fn retrieve_thread(&mut self, thread_id: String) -> Result<ThreadObject, APIError> {
+    pub async fn retrieve_thread(self, thread_id: String) -> Result<ThreadObject, APIError> {
         self.get(&format!("threads/{}", thread_id)).await
     }
 
@@ -602,7 +637,7 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_message(
-        &mut self,
+        self,
         thread_id: String,
         message_id: String,
     ) -> Result<MessageObject, APIError> {
@@ -623,12 +658,12 @@ impl OpenAIClient {
         .await
     }
 
-    pub async fn list_messages(&mut self, thread_id: String) -> Result<ListMessage, APIError> {
+    pub async fn list_messages(self, thread_id: String) -> Result<ListMessage, APIError> {
         self.get(&format!("threads/{}/messages", thread_id)).await
     }
 
     pub async fn retrieve_message_file(
-        &mut self,
+        self,
         thread_id: String,
         message_id: String,
         file_id: String,
@@ -641,7 +676,7 @@ impl OpenAIClient {
     }
 
     pub async fn list_message_file(
-        &mut self,
+        self,
         thread_id: String,
         message_id: String,
         limit: Option<i64>,
@@ -669,7 +704,7 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_run(
-        &mut self,
+        self,
         thread_id: String,
         run_id: String,
     ) -> Result<RunObject, APIError> {
@@ -688,7 +723,7 @@ impl OpenAIClient {
     }
 
     pub async fn list_run(
-        &mut self,
+        self,
         thread_id: String,
         limit: Option<i64>,
         order: Option<String>,
@@ -725,7 +760,7 @@ impl OpenAIClient {
     }
 
     pub async fn retrieve_run_step(
-        &mut self,
+        self,
         thread_id: String,
         run_id: String,
         step_id: String,
@@ -738,7 +773,7 @@ impl OpenAIClient {
     }
 
     pub async fn list_run_step(
-        &mut self,
+        &self,
         thread_id: String,
         run_id: String,
         limit: Option<i64>,

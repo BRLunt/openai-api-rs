@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
+use serde_json::Value;
 use super::types;
 use crate::impl_builder_methods;
-use crate::v1::types::Tool;
+use crate::v1::types::{JSONSchemaDefine, JSONSchemaType, Tool};
 
 #[derive(Debug, Serialize, Clone)]
 pub struct AssistantRequest {
@@ -20,6 +20,10 @@ pub struct AssistantRequest {
     pub tool_resources: Option<ToolResource>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_format: Option<JSONSchemaType>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "response_format")] //CAUTION! Do not use in conjunction with the strucutred definition
+    pub raw_schema: Option<Value>,
 }
 
 impl AssistantRequest {
@@ -32,6 +36,8 @@ impl AssistantRequest {
             tools: None,
             tool_resources: None,
             metadata: None,
+            response_format: None,
+            raw_schema: None,
         }
     }
 }
@@ -43,7 +49,8 @@ impl_builder_methods!(
     instructions: String,
     tools: Vec<Tool>,
     tool_resources: ToolResource,
-    metadata: HashMap<String, String>
+    metadata: HashMap<String, String>,
+    raw_schema: Value
 );
 
 #[derive(Debug, Deserialize, Serialize)]
