@@ -1,45 +1,46 @@
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use serde_json::Value;
 use super::types;
 use crate::impl_builder_methods;
-use crate::v1::types::{JSONSchemaDefine, JSONSchemaType, Tool};
+use crate::v1::types::{JSONSchemaType, Tool};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct AssistantRequest {
-    pub model: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub instructions: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<Tool>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_resources: Option<ToolResource>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub response_format: Option<JSONSchemaType>,
-    #[serde(skip_serializing_if = "Option::is_none", rename = "response_format")] //CAUTION! Do not use in conjunction with the strucutred definition
-    pub raw_schema: Option<Value>,
+  pub model: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub description: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub instructions: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub tools: Option<Vec<Tool>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub tool_resources: Option<ToolResource>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metadata: Option<HashMap<String, String>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub response_format: Option<JSONSchemaType>,
+  #[serde(skip_serializing_if = "Option::is_none", rename = "response_format")]
+  //CAUTION! Do not use in conjunction with the strucutred definition
+  pub raw_schema: Option<Value>,
 }
 
 impl AssistantRequest {
-    pub fn new(model: String) -> Self {
-        Self {
-            model,
-            name: None,
-            description: None,
-            instructions: None,
-            tools: None,
-            tool_resources: None,
-            metadata: None,
-            response_format: None,
-            raw_schema: None,
-        }
+  pub fn new(model: String) -> Self {
+    Self {
+      model,
+      name: None,
+      description: None,
+      instructions: None,
+      tools: None,
+      tool_resources: None,
+      metadata: None,
+      response_format: None,
+      raw_schema: None,
     }
+  }
 }
 
 impl_builder_methods!(
@@ -55,75 +56,75 @@ impl_builder_methods!(
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AssistantObject {
-    pub id: String,
-    pub object: String,
-    pub created_at: i64,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    pub model: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub instructions: Option<String>,
-    pub tools: Vec<types::Tools>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_resources: Option<ToolResource>,
-    pub metadata: Option<HashMap<String, String>>,
+  pub id: String,
+  pub object: String,
+  pub created_at: i64,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub description: Option<String>,
+  pub model: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub instructions: Option<String>,
+  pub tools: Vec<types::Tools>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub tool_resources: Option<ToolResource>,
+  pub metadata: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ToolResource {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub code_interpreter: Option<CodeInterpreter>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_search: Option<FileSearch>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub code_interpreter: Option<CodeInterpreter>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub file_search: Option<FileSearch>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CodeInterpreter {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_ids: Option<Vec<String>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub file_ids: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct FileSearch {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub vector_store_ids: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub vector_stores: Option<VectorStores>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub vector_store_ids: Option<Vec<String>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub vector_stores: Option<VectorStores>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct VectorStores {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_ids: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chunking_strategy: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<HashMap<String, String>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub file_ids: Option<Vec<String>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub chunking_strategy: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub metadata: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ListAssistant {
-    pub object: String,
-    pub data: Vec<AssistantObject>,
+  pub object: String,
+  pub data: Vec<AssistantObject>,
 }
 
 #[derive(Debug, Serialize, Clone)]
 pub struct AssistantFileRequest {
-    pub file_id: String,
+  pub file_id: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AssistantFileObject {
-    pub id: String,
-    pub object: String,
-    pub created_at: i64,
-    pub assistant_id: String,
+  pub id: String,
+  pub object: String,
+  pub created_at: i64,
+  pub assistant_id: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ListAssistantFile {
-    pub object: String,
-    pub data: Vec<AssistantFileObject>,
+  pub object: String,
+  pub data: Vec<AssistantFileObject>,
 }
