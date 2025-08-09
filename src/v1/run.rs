@@ -4,6 +4,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 use crate::impl_builder_methods;
+use crate::v1::chat_completion::Tool;
 use crate::v1::types::Tools;
 
 #[derive(Debug, Serialize, Clone)]
@@ -171,9 +172,11 @@ pub struct CreateThreadAndRunRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub instructions: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<HashMap<String, String>>>,
+    pub tools: Option<Vec<crate::v1::types::Tool>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_choice: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

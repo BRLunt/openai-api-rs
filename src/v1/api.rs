@@ -56,6 +56,7 @@ use std::fs::{create_dir_all, File};
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
+use log::debug;
 
 const API_URL_V1: &str = "https://api.openai.com/v1";
 
@@ -214,6 +215,7 @@ impl OpenAIClient {
                 message: format!("Failed to serialize body: {}", e),
             })?;
         println!("Request body: {}", body);
+        println!("Path: {}", path);
         let response = request.send().await?;
         self.handle_response(response).await
     }
@@ -839,6 +841,7 @@ impl OpenAIClient {
             Some((b, q)) => (b.trim_end_matches('/'), Some(q)),
             None => (self.api_endpoint.trim_end_matches('/'), None),
         };
+        println!("base: {}, query: {:?}", base, query_opt);
 
         let full_path = format!("{}/{}", base, path.trim_start_matches('/'));
         let mut url = Url::parse(&full_path)?;
