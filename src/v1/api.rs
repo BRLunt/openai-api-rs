@@ -56,7 +56,7 @@ use std::fs::{create_dir_all, File};
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
-use log::debug;
+use log::{debug, info};
 
 const API_URL_V1: &str = "https://api.openai.com/v1";
 
@@ -77,7 +77,7 @@ pub struct OpenAIClient {
     organization: Option<String>,
     proxy: Option<String>,
     timeout: Option<u64>,
-    headers: Option<HeaderMap>,
+    pub headers: Option<HeaderMap>,
 }
 
 
@@ -214,8 +214,8 @@ impl OpenAIClient {
             .map_err(|e| APIError::CustomError {
                 message: format!("Failed to serialize body: {}", e),
             })?;
-        println!("Request body: {}", body);
-        println!("Path: {}", path);
+        info!("Request body: {}", body);
+        debug!("Path: {}", path);
         let response = request.send().await?;
         self.handle_response(response).await
     }
@@ -223,6 +223,8 @@ impl OpenAIClient {
     async fn get<T: serde::de::DeserializeOwned>(&self, path: &str) -> Result<T, APIError> {
         let request = self.build_request(Method::GET, path).await;
         let response = request.send().await?;
+        // print headers
+        println!("Response headers: {:?}", response.headers());
         self.handle_response(response).await
     }
 

@@ -4,7 +4,6 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 use crate::impl_builder_methods;
-use crate::v1::chat_completion::Tool;
 use crate::v1::types::Tools;
 
 #[derive(Debug, Serialize, Clone)]
